@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sk-movies-fe
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sk-movies-fe
+  template:
+    metadata:
+      labels:
+        app: sk-movies-fe
+    spec:
+      containers:
+      - name: sk-movies-fe
+        image: ghcr.io/sergeykharkovshchenko/sk-movies-fe:latest
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "250m"
+          requests:
+            memory: "32Mi"
+            cpu: "50m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sk-movies-fe
+  namespace: default
+spec:
+  selector:
+    app: sk-movies-fe
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sk-movies-fe
+  namespace: default
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: movies.92.5.46.199.nip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: sk-movies-fe
+            port:
+              number: 80
